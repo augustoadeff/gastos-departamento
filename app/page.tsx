@@ -13,6 +13,23 @@ export default function Home() {
   const [estado, setEstado] = useState("");
   const [gastos, setGastos] = useState<any[]>([]);
   const serviciosDisponibles = ["Luz", "Gas", "ABL", "Internet", "AYSA"];
+  const [sesion, setSesion] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSesion(data.session);
+    });
+  }, []);
+
+  if (!sesion) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <Button onClick={login}>
+          Iniciar Sesión
+        </Button>
+      </main>
+    );
+  }
 
   useEffect(() => {
     cargarGastos();
@@ -105,10 +122,38 @@ export default function Home() {
     setGastos(data);
   }
 
+  async function login() {
+    const email = prompt("Email");
+    const password = prompt("Contraseña");
+
+    if (!email || !password) return;
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    location.reload();
+  }
+
+  async function logout() {
+    await supabase.auth.signOut();
+    location.reload();
+  }
+
   return (
     <main className="min-h-screen bg-slate-100 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <h1 className="text-3xl font-bold">Control de Gastos del Departamento</h1>
+
+        <Button variant="outline" onClick={logout}>
+          Cerrar Sesión
+        </Button>
 
         <div className="grid md:grid-cols-3 gap-4">
           <Card>
