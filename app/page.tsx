@@ -12,7 +12,15 @@ export default function Home() {
   const [monto, setMonto] = useState("");
   const [estado, setEstado] = useState("");
   const [gastos, setGastos] = useState<any[]>([]);
-  const serviciosDisponibles = ["Luz", "Gas", "ABL", "Internet", "AYSA"];
+  const serviciosDisponibles = [
+    { nombre: "EDENOR", icono: "💡" },
+    { nombre: "MetroGas", icono: "🔥" },
+    { nombre: "ABL", icono: "🏠" },
+    { nombre: "Internet", icono: "🌐" },
+    { nombre: "AYSA", icono: "💧" },
+  ];
+  const [filtroMes, setFiltroMes] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
   const [sesion, setSesion] = useState<any>(null);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");   
@@ -43,18 +51,13 @@ export default function Home() {
               <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}/>
 
               <Button type="submit" className="w-full">Ingresar</Button>
-              
+
             </form>
           </CardContent>
         </Card>
       </main>
     );
   }
-
-  const totalMes = gastos.reduce(
-    (acc, gasto) => acc + Number(gasto.monto),
-    0
-  );
 
   const plataformas = [
     {
@@ -66,7 +69,7 @@ export default function Home() {
       url: "https://www.metrogas.com.ar/",
     },
     {
-      nombre: "Expensas",
+      nombre: "AYSA",
       url: "https://www.tuadministrador.com/",
     },
   ];
@@ -84,6 +87,19 @@ export default function Home() {
   const serviciosActivos = new Set(
     gastos.map((gasto) => gasto.servicio)
   ).size;
+
+  const gastosFiltrados = filtroMes
+    ? gastos.filter((g) =>
+        g.fecha?.startsWith(filtroMes)
+      )
+    : gastos;
+
+    const gastosParaTotales = filtroMes ? gastosFiltrados : gastos;
+
+    const totalMes = gastosParaTotales.reduce(
+      (acc, gasto) => acc + Number(gasto.monto),
+      0
+    );
 
   async function agregarGasto() {
     const { data, error } = await supabase
@@ -115,6 +131,25 @@ export default function Home() {
       .from("gastos")
       .delete()
       .eq("id", id);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    await cargarGastos();
+  }
+
+  async function toggleEstado(gasto: any) {
+    const nuevoEstado =
+      gasto.estado?.toLowerCase() === "pagado"
+        ? "Pendiente"
+        : "Pagado";
+
+    const { error } = await supabase
+      .from("gastos")
+      .update({ estado: nuevoEstado })
+      .eq("id", gasto.id);
 
     if (error) {
       console.error(error);
@@ -158,38 +193,21 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-100 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold">Control de Gastos del Departamento</h1>
-
-        <Button variant="outline" onClick={logout}>
-          Cerrar Sesión
-        </Button>
-
-        <div className="grid md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-sm text-slate-500">Total este mes</p>
-              <h2 className="text-2xl font-bold">
-                ${totalMes}
-              </h2>
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 p-6">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div className="grid md:grid-cols-2 gap-4">
+          <Card className="bg-white/70 backdrop-blur border-0 shadow-sm">
+            <CardContent className="p-14">
+              <h1 className="text-4xl font-bold tracking-tight text-slate-800 font-mono">Control de Gastos</h1>
             </CardContent>
+
           </Card>
 
-          <Card>
+          <Card className="bg-white/70 backdrop-blur border-0 shadow-sm">
             <CardContent className="p-6">
-              <p className="text-sm text-slate-500">Pagos pendientes</p>
-              <h2 className="text-2xl font-bold">
+              <p className="text-xl text-slate-500 font-mono">Pagos pendientes</p>
+              <h2 className="text-3xl font-bold text-amber-600">
                 {pagosPendientes}
-              </h2>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-sm text-slate-500">Servicios activos</p>
-              <h2 className="text-2xl font-bold">
-                {serviciosActivos}
               </h2>
             </CardContent>
           </Card>
@@ -197,7 +215,7 @@ export default function Home() {
 
         <Card>
           <CardContent className="p-6 space-y-4">
-            <h2 className="text-xl font-semibold">
+            <h2 className="text-2xl font-semibold">
               Cargar Nuevo Gasto
             </h2>
 
@@ -206,21 +224,26 @@ export default function Home() {
                 type="date"
                 value={fecha}
                 onChange={(e) => setFecha(e.target.value)}
+                className="w-full"
               />
 
-              <Select value={servicio} onValueChange={setServicio}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Servicio" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {serviciosDisponibles.map((serv) => (
-                    <SelectItem key={serv} value={serv}>
-                      {serv}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-2 md:grid-cols-2 gap-3">
+                {serviciosDisponibles.map((serv) => (
+                  <button
+                    key={serv.nombre}
+                    type="button"
+                    onClick={() => setServicio(serv.nombre)}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition ${
+                      servicio === serv.nombre
+                        ? "bg-slate-800 text-white border-slate-800"
+                        : "bg-white hover:bg-slate-50 border-slate-200"
+                    }`}
+                  >
+                    <span className="text-2xl">{serv.icono}</span>
+                    <span className="text-sm mt-1">{serv.nombre}</span>
+                  </button>
+                ))}
+              </div>
 
               <Input
                 placeholder="Monto"
@@ -249,29 +272,75 @@ export default function Home() {
 
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-4">
-              Gastos Cargados
-            </h2>
+
+            <div>
+
+              <h2 className="text-2xl font-semibold mb-4">Gastos</h2>
+
+              <div className="flex items-center gap-2">
+                
+                <Input
+                  type="month"
+                  value={filtroMes}
+                  onChange={(e) => setFiltroMes(e.target.value)}
+                  className="w-48"
+                />
+
+                <Button variant="outline" onClick={() => setFiltroMes("")}>Limpiar</Button>
+
+              </div>
+
+            </div>
+            
+
+            <Card>
+              <CardContent className="p-6">
+                <p className="text-sm text-slate-500">Total este mes</p>
+                <h2 className="text-3xl font-bold text-slate-800">
+                  ${totalMes}
+                </h2>
+              </CardContent>
+            </Card>
 
             <div className="space-y-2">
-              {gastos.map((gasto, index) => (
+              {gastosFiltrados.map((gasto, index) => (
                 <div
                   key={index}
-                  className="p-3 bg-white rounded border flex justify-between items-center"
+                  className="grid grid-cols-5 items-center p-4 bg-white/70 backdrop-blur border border-slate-100 rounded-xl shadow-sm"
                 >
-                  <span>
-                    {gasto.fecha} | {gasto.servicio} | $
-                    {gasto.monto} | {gasto.estado}
+                  <span className="text-lg">
+                    {gasto.servicio}
                   </span>
 
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-base text-slate-500">
+                      {gasto.fecha}
+                    </span>
+                  </div>
+
+                  <span className="text-xl font-semibold text-slate-800">
+                    ${gasto.monto}
+                  </span>
+
+                  <button
+                    onClick={() => toggleEstado(gasto)}
+                    className={`text-lg px-2 py-1 rounded-full w-fit transition ${
+                      gasto.estado?.toLowerCase() === "pagado"
+                        ? "bg-green-100 text-green-700 hover:bg-green-200"
+                        : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                    }`}
+                  >
+                    {gasto.estado}
+                  </button>
+
+                  <div className="flex gap-2 justify-end">
                     {linksServicios[gasto.servicio] && (
                       <a
                         href={linksServicios[gasto.servicio]}
                         target="_blank"
                         rel="noreferrer"
                       >
-                        <Button size="sm">
+                        <Button size="lg">
                           Pagar
                         </Button>
                       </a>
@@ -279,7 +348,7 @@ export default function Home() {
 
                     <Button
                       variant="destructive"
-                      size="sm"
+                      size="lg"
                       onClick={() => eliminarGasto(gasto.id)}
                     >
                       Eliminar
@@ -293,7 +362,7 @@ export default function Home() {
 
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-4">
+            <h2 className="text-2xl font-semibold mb-4">
               Plataformas de Pago
             </h2>
 
@@ -313,6 +382,11 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
+
+        <Button variant="outline" onClick={logout} className="bg-grey">
+          Cerrar Sesión
+        </Button>   
+
       </div>
     </main>
   );
