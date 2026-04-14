@@ -62,15 +62,15 @@ export default function Home() {
   const plataformas = [
     {
       nombre: "Edenor",
-      url: "https://www.edenor.com/",
+      url: "https://edenordigital.com/ingreso/bienvenida",
     },
     {
       nombre: "Metrogas",
-      url: "https://www.metrogas.com.ar/",
+      url: "https://registro.micuenta.metrogas.com.ar/",
     },
     {
       nombre: "AYSA",
-      url: "https://www.tuadministrador.com/",
+      url: "https://oficinavirtual.web.aysa.com.ar/index.html",
     },
   ];
 
@@ -194,6 +194,54 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 p-6">
+
+      <div className="fixed top-4 right-4 z-50">
+        <Button
+          variant="outline"
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="text-xl px-3"
+        >
+          ☰
+        </Button>
+      </div>
+
+      {menuOpen && (
+        <div className="fixed inset-0 z-40">
+          {/* fondo oscuro */}
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMenuOpen(false)}
+          />
+
+          {/* panel */}
+          <div className="absolute top-0 right-0 h-full w-64 bg-white shadow-xl p-6 space-y-4">
+              <Card>
+
+                <CardContent className="p-6">
+                  <h2 className="text-2xl font-semibold mb-4">
+                    Plataformas de Pago
+                  </h2>
+
+                  <div className="grid md:grid-rows gap-4">
+                    {plataformas.map((plataforma, index) => (
+                      <a
+                        key={index}
+                        href={plataforma.url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <Button className="w-full">
+                          {plataforma.nombre}
+                        </Button>
+                      </a>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="grid md:grid-cols-2 gap-4">
           <Card className="bg-white/70 backdrop-blur border-0 shadow-sm">
@@ -355,29 +403,6 @@ export default function Home() {
                     </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">
-              Plataformas de Pago
-            </h2>
-
-            <div className="grid md:grid-cols-3 gap-4">
-              {plataformas.map((plataforma, index) => (
-                <a
-                  key={index}
-                  href={plataforma.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Button className="w-full">
-                    {plataforma.nombre}
-                  </Button>
-                </a>
               ))}
             </div>
           </CardContent>
