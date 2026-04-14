@@ -14,6 +14,8 @@ export default function Home() {
   const [gastos, setGastos] = useState<any[]>([]);
   const serviciosDisponibles = ["Luz", "Gas", "ABL", "Internet", "AYSA"];
   const [sesion, setSesion] = useState<any>(null);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");   
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -29,10 +31,22 @@ export default function Home() {
 
   if (!sesion) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <Button onClick={login}>
-          Iniciar Sesión
-        </Button>
+      <main className="min-h-screen flex items-center justify-center bg-slate-100">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 space-y-4">
+            <form className="space-y-4" onSubmit={(e) => {e.preventDefault();login();}}>
+
+              <h1 className="text-2xl font-bold text-center">Iniciar Sesión</h1>
+
+              <Input type="email" placeholder="Email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}/>
+
+              <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}/>
+
+              <Button type="submit" className="w-full">Ingresar</Button>
+              
+            </form>
+          </CardContent>
+        </Card>
       </main>
     );
   }
@@ -125,14 +139,9 @@ export default function Home() {
   }
 
   async function login() {
-    const email = prompt("Email");
-    const password = prompt("Contraseña");
-
-    if (!email || !password) return;
-
     const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: loginEmail,
+      password: loginPassword,
     });
 
     if (error) {
