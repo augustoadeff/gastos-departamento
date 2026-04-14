@@ -328,26 +328,27 @@ export default function Home() {
               {gastosFiltrados.map((gasto, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-5 items-center p-4 bg-white/70 backdrop-blur border border-slate-100 rounded-xl shadow-sm"
-                >
-                  <span className="text-lg">
-                    {gasto.servicio}
-                  {gasto.subtipo && ` - ${gasto.subtipo}`}        
-                  </span>
+                  className="grid grid-cols-1 md:grid-cols-4 gap-3 p-4 bg-white/70 backdrop-blur border border-slate-100 rounded-xl shadow-sm items-start">
 
-                  <div className="flex items-center gap-3">
+                  <div  className="flex flex-col">
+                    <span className="text-xl text-slate-800">
+                      {gasto.servicio}
+                      {gasto.subtipo && ` - ${gasto.subtipo}`}        
+                    </span>
+
                     <span className="text-base text-slate-500">
                       {gasto.fecha}
                     </span>
-                  </div>
+                  </div>  
+                  
 
-                  <span className="text-xl font-semibold text-slate-800">
+                  <span className="font-semibold text-xl text-slate-800 text-right">
                     ${gasto.monto}
                   </span>
 
                   <button
                     onClick={() => toggleEstado(gasto)}
-                    className={`text-lg px-2 py-1 rounded-full w-fit transition ${
+                    className={`flex gap-2 md:self-auto text-lg px-2 py-1 rounded-full w-fit transition ${
                       gasto.estado?.toLowerCase() === "pagado"
                         ? "bg-green-100 text-green-700 hover:bg-green-200"
                         : "bg-amber-100 text-amber-700 hover:bg-amber-200"
