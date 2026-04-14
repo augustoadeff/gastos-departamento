@@ -21,6 +21,12 @@ export default function Home() {
     });
   }, []);
 
+  useEffect(() => {
+    if (sesion) {
+      cargarGastos();
+    }
+  }, [sesion]);
+
   if (!sesion) {
     return (
       <main className="min-h-screen flex items-center justify-center">
@@ -30,10 +36,6 @@ export default function Home() {
       </main>
     );
   }
-
-  useEffect(() => {
-    cargarGastos();
-  }, []);
 
   const totalMes = gastos.reduce(
     (acc, gasto) => acc + Number(gasto.monto),
