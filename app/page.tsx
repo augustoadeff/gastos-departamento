@@ -19,6 +19,7 @@ export default function Home() {
     { nombre: "Internet", icono: "🌐" },
     { nombre: "AYSA", icono: "💧" },
   ];
+  const [subtipo, setSubtipo] = useState("");
   const [filtroMes, setFiltroMes] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [sesion, setSesion] = useState<any>(null);
@@ -36,6 +37,10 @@ export default function Home() {
       cargarGastos();
     }
   }, [sesion]);
+
+  useEffect(() => {
+    setSubtipo("");
+  }, [servicio]);
 
   if (!sesion) {
     return (
@@ -59,20 +64,13 @@ export default function Home() {
     );
   }
 
-  const plataformas = [
-    {
-      nombre: "Edenor",
-      url: "https://edenordigital.com/ingreso/bienvenida",
-    },
-    {
-      nombre: "Metrogas",
-      url: "https://registro.micuenta.metrogas.com.ar/",
-    },
-    {
-      nombre: "AYSA",
-      url: "https://oficinavirtual.web.aysa.com.ar/index.html",
-    },
-  ];
+  const categorias: Record<string, string[]> = {
+  ABL: ["Departamento", "Cochera"],
+  Luz: [],
+  Gas: [],
+  Internet: [],
+  AYSA: ["Departamento", "Cochera"],
+};
 
   const linksServicios: Record<string, string> = {
     Edenor: "https://www.edenor.com/",
@@ -108,6 +106,7 @@ export default function Home() {
         {
           fecha,
           servicio,
+          subtipo: servicio === "ABL" ? subtipo : null,
           monto: Number(monto),
           estado,
         },
@@ -230,6 +229,7 @@ export default function Home() {
 
               <div className="grid grid-cols-2 md:grid-cols-2 gap-3">
                 {serviciosDisponibles.map((serv) => (
+
                   <button
                     key={serv.nombre}
                     type="button"
@@ -245,6 +245,27 @@ export default function Home() {
                   </button>
                 ))}
               </div>
+
+              {categorias[servicio]?.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    {categorias[servicio].map((tipo) => (
+                      <button
+                        key={tipo}
+                        type="button"
+                        onClick={() => setSubtipo(tipo)}
+                        className={`p-2 rounded-xl border transition ${
+                          subtipo === tipo
+                            ? "bg-slate-800 text-white"
+                            : "bg-white hover:bg-slate-50"
+                        }`}
+                      >
+                        {tipo}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <Input
                 placeholder="Monto"
@@ -311,6 +332,7 @@ export default function Home() {
                 >
                   <span className="text-lg">
                     {gasto.servicio}
+                  {gasto.subtipo && ` - ${gasto.subtipo}`}        
                   </span>
 
                   <div className="flex items-center gap-3">
